@@ -12,9 +12,6 @@ path = "src/lib.rs"
 
 [dependencies]
 bytes = "1.1.0"
-getrandom = "0.2"
-hex = "0.4"
-nom = "7.1.0"
 rand = "0.8"
 
 [profile.dev]

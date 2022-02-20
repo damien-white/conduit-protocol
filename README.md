@@ -5,46 +5,33 @@
 [![CI](https://github.com/dark-fusion/saint-protocol/workflows/CI/badge.svg)](https://github.com/dark-fusion/saint-protocol/actions)
 [![Coverage Status](https://coveralls.io/repos/github/dark-fusion/saint-protocol/badge.svg?branch=main)](https://coveralls.io/github/dark-fusion/saint-protocol?branch=main)
 
-## Installation
-
-## Protocol
-
-- Byte-oriented protocol
-- Binary encoding
--
-
-```text
-    /       0        |         1       |         2       |        3        |
-   /                 |                 |                 |                 |
-   | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 |
-   +-----------------+-----------------+-----------------+-----------------+
-   |       MAGIC  SIGNATURE            |     VERSION     |     OPCODE      |
-32 +-----------------+-----------------+-----------------+-----------------+
-   |             FRAME ID              |              LENGTH               |
-64 +-----------------+-----------------+-----------------+-----------------+
-   |                              MESSAGE BODY                             |
-.. | Message payload as determined by OPCODE. The body length is limited   |
-   | by the LENGTH field value.                                            |
-   |                                                                       |
-.. +-----------------+-----------------+-----------------+-----------------+
-```
-
-### VERSION
-
-Determines the protocol version and whether the Frame is a request or response
-
-- If the MSB is set the frame is a response: 0x81
-- Else, the frame is a request: 0x01
-
-### Frame ID
-
-24-bit integer that expands to a
+## Project Setup
 
 ### Cargo
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
 * run `cargo install saint-protocol`
+
+## Description
+
+### Protocol Specification
+
+The protocol is a byte-oriented protocol that uses binary encoding (as opposed to text encoding).
+
+The protocol uses a codec to parse raw bytes into frames that can be understood by client and
+server.
+
+```text
+    /       0        |         1       |         2       |        3        |
+   /                 |                 |                 |                 |
+   | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 |
+ 0 +-----------------+-----------------+-----------------+-----------------+
+   |      VERSION    |     OPCODE      |               LENGTH              |
+ 4 +-----------------+-----------------+-----------------+-----------------+
+   |     BODY (containing the NONCE and the MESSAGE) NONCE and MESSAGE     |
+.. +-----------------------------------------------------------------------+
+```
 
 ## License
 
