@@ -11,7 +11,8 @@
 
 * Install the rust toolchain in order to have cargo installed by following
   [this](https://www.rust-lang.org/tools/install) guide.
-* run `cargo install saint-protocol`
+* This project uses [just](https://github.com/casey/just) for running commonly used commands.
+* Run `just compile` to make sure the project compiles
 
 ## Description
 
