@@ -1,9 +1,9 @@
-# saint-protocol
+# conduit-protocol
 
-[![Crates.io](https://img.shields.io/crates/v/saint-protocol.svg)](https://crates.io/crates/saint-protocol)
-[![Docs.rs](https://docs.rs/saint-protocol/badge.svg)](https://docs.rs/saint-protocol)
-[![CI](https://github.com/dark-fusion/saint-protocol/workflows/CI/badge.svg)](https://github.com/dark-fusion/saint-protocol/actions)
-[![Coverage Status](https://coveralls.io/repos/github/dark-fusion/saint-protocol/badge.svg?branch=main)](https://coveralls.io/github/dark-fusion/saint-protocol?branch=main)
+[![Crates.io](https://img.shields.io/crates/v/conduit-protocol.svg)](https://crates.io/crates/conduit-protocol)
+[![Docs.rs](https://docs.rs/conduit-protocol/badge.svg)](https://docs.rs/conduit-protocol)
+[![CI](https://github.com/dark-fusion/conduit-protocol/workflows/CI/badge.svg)](https://github.com/dark-fusion/conduit-protocol/actions)
+[![Coverage Status](https://coveralls.io/repos/github/dark-fusion/conduit-protocol/badge.svg?branch=main)](https://coveralls.io/github/dark-fusion/conduit-protocol?branch=main)
 
 ## Project Setup
 
@@ -30,20 +30,14 @@ server.
  0 +-----------------+-----------------+-----------------+-----------------+
    |      VERSION    |     OPCODE      |               LENGTH              |
  4 +-----------------+-----------------+-----------------+-----------------+
-   |     BODY (containing the NONCE and the MESSAGE) NONCE and MESSAGE     |
+   |                                MESSAGE                                |
+   |          8-byte nonce followed by the message body itself             |
 .. +-----------------------------------------------------------------------+
 ```
 
 ## License
 
-Licensed under either of
-
-* Apache License, Version 2.0
-  ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-* MIT license
-  ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
+Licensed under the MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT).
 
 ## Contribution
 

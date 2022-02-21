@@ -1,15 +1,20 @@
+use std::io;
+
 use bytes::{Buf, Bytes, BytesMut};
 use rand::{thread_rng, RngCore};
 
-use crate::error::Error;
+use crate::error::CodecError;
 
 pub const MAX_FRAME_LEN: usize = 65536;
 pub const HEADER_LEN: usize = 4;
 pub const NONCE_LEN: usize = 8;
 
+// FIXME: Finish Frame logic and write header / message parser
+
 #[derive(Debug)]
 pub struct Frame {
     header: Header,
+    #[allow(dead_code)]
     message: Message,
 }
 
@@ -32,14 +37,35 @@ pub struct Message {
 }
 
 impl Frame {
-    pub fn parse_header(&self, mut src: BytesMut) -> Result<&Header, Error> {
+    pub fn parse_header(&self, mut src: BytesMut) -> Result<&Header, CodecError> {
         if src.is_empty() {
-            return Err(Error::MissingData);
+            return Err(CodecError::MissingData);
         }
 
         src.advance(2);
 
         Ok(&self.header)
+    }
+}
+
+#[derive(Debug)]
+pub enum Version {
+    Request,
+    Response,
+}
+
+impl TryFrom<u8> for Version {
+    type Error = CodecError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0x01 => Ok(Version::Request),
+            0x81 => Ok(Version::Response),
+            _ => Err(CodecError::IOError(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "version field contains invalid data",
+            ))),
+        }
     }
 }
 
@@ -63,26 +89,5 @@ impl Nonce {
 impl Default for Nonce {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[derive(Debug)]
-pub enum Version {
-    Request,
-    Response,
-}
-
-impl TryFrom<u8> for Version {
-    type Error = Error;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0x01 => Ok(Version::Request),
-            0x81 => Ok(Version::Response),
-            _ => Err(Error::IOError(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "version field contains invalid data",
-            ))),
-        }
     }
 }
