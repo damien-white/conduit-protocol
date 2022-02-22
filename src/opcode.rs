@@ -1,21 +1,35 @@
 use bytes::Bytes;
 
-// TODO: Create Opcode -> Command (function) via VTable or similar technique
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum Opcode {
-    /// Invalid opcode; stop processing request
-    Invalid = 0x00,
+    /// Send a known command to the database (`get`, `set`, `remove`, `list`)
+    Query { command: Command },
     /// Send _start_ signal to server
-    Start = 0x01,
+    Start,
     /// Send _shutdown_ signal; args: u64 (seconds before shutdown signal)
-    Shutdown = 0x02,
+    Shutdown { delay: u64 },
     /// Send _restart_ signal; args: u64 (seconds before shutdown signal)
-    Restart = 0x04,
-    // time before shutdown
-    Command = 0x08, // `Get` `Set` `List` Del`
+    Restart { delay: u64 },
+    /// Send _status_ check, useful for performing a health check
+    Status { message: Bytes },
+    /// Invalid opcode; stop processing request
+    Invalid { message: Bytes },
 }
 
-#[derive(Clone, Debug)]
+// TODO: Change `key` to `String` type or decide upon an alternative solution.
+#[derive(Debug, Clone)]
 pub enum Command {
-    Get { key: String, value: Bytes },
+    Get {
+        key: Bytes,
+        value: Bytes,
+    },
+    Set {
+        key: Bytes,
+        value: Bytes,
+        ttl: Option<u64>,
+    },
+    Del {
+        key: Bytes,
+    },
+    List,
 }

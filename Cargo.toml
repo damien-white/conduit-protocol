@@ -15,7 +15,8 @@ path = "src/lib.rs"
 [dependencies]
 bytes = "1"
 rand = "0.8"
-tokio-util = { version = "0.7", features = ["codec"] }
+tokio = { version = "1", features = ["macros", "net", "signal"] }
+tokio-util = { version = "0.7", features = ["codec", "io-util", "net"] }
 tokio-stream = "0.1.8"
 
 [profile.dev]

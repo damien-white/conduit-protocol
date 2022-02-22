@@ -18,6 +18,18 @@ pub struct Frame {
     message: Message,
 }
 
+impl Frame {
+    pub fn parse_header(&self, mut src: BytesMut) -> Result<&Header, CodecError> {
+        if src.is_empty() {
+            return Err(CodecError::MissingData);
+        }
+
+        src.advance(2);
+
+        Ok(&self.header)
+    }
+}
+
 #[derive(Debug)]
 pub struct Header {
     /// `u8` protocol version and direction of frame (request / response)
@@ -34,18 +46,6 @@ pub struct Message {
     pub nonce: u64,
     /// Variable length payload determined by the `length_field` value
     pub body: BytesMut,
-}
-
-impl Frame {
-    pub fn parse_header(&self, mut src: BytesMut) -> Result<&Header, CodecError> {
-        if src.is_empty() {
-            return Err(CodecError::MissingData);
-        }
-
-        src.advance(2);
-
-        Ok(&self.header)
-    }
 }
 
 #[derive(Debug)]
