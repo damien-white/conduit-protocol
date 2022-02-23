@@ -1,18 +1,17 @@
 use bytes::Bytes;
 
+// TODO: Update this solution to something more optimal and easy to reason about
 #[derive(Debug, Clone)]
 pub enum Opcode {
     /// Send a known command to the database (`get`, `set`, `remove`, `list`)
     Query { command: Command },
-    /// Send _start_ signal to server
-    Start,
-    /// Send _shutdown_ signal; args: u64 (seconds before shutdown signal)
+    /// Send "shutdown" signal with a delay (in seconds)
     Shutdown { delay: u64 },
-    /// Send _restart_ signal; args: u64 (seconds before shutdown signal)
+    /// Send "restart" signal with a delay (in seconds)
     Restart { delay: u64 },
-    /// Send _status_ check, useful for performing a health check
+    /// Send "status" check, performing a similar function as a health check
     Status { message: Bytes },
-    /// Invalid opcode; stop processing request
+    /// Invalid opcode / Error
     Invalid { message: Bytes },
 }
 
