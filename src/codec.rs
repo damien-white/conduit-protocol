@@ -11,6 +11,8 @@ pub(crate) const RESPONSE_MASK: u8 = 0b10000001;
 
 pub struct ConduitCodec;
 
+impl ConduitCodec {}
+
 // TODO: Implement Decoder trait
 impl Decoder for ConduitCodec {
     type Item = BytesMut;
