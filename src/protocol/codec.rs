@@ -2,7 +2,10 @@ use bytes::{Bytes, BytesMut};
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::error::FrameError;
-use crate::frame::MAX_FRAME_LEN;
+
+pub const MAX_FRAME_LEN: usize = 65536;
+pub const HEADER_LEN: usize = 4;
+pub const NONCE_LEN: usize = 8;
 
 // Bitmask used to check if a frame is a request
 pub(crate) const REQUEST_MASK: u8 = 0b00000001;

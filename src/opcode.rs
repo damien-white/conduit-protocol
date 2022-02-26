@@ -1,22 +1,23 @@
 // TODO: Update this solution to something more optimal and easy to reason about
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[repr(u8)]
 pub enum Opcode {
     // Unknown command; returns None or an Error
-    Unknown,
+    Unknown = 0x00,
     // Get a key-value pair if it exists
-    Get,
+    Get = 0x01,
     // Set a new key-value pair with optional expiration
-    Set,
+    Set = 0x02,
     // Remove a cache entry
-    Delete,
+    Delete = 0x03,
     // List key-value pairs that match a given pattern
-    List,
+    List = 0x04,
     // Renew cache entry
-    Refresh,
+    Refresh = 0x05,
     // Status signal
-    Status,
+    Status = 0x81,
     // Shutdown signal
-    Shutdown,
+    Shutdown = 0x82,
 }
 
 impl Opcode {
@@ -29,7 +30,7 @@ impl Opcode {
             0x04 => Opcode::List,
             0x05 => Opcode::Refresh,
             0x80 => Opcode::Status,
-            0x81 => Opcode::Shutdown,
+            0x82 => Opcode::Shutdown,
             _ => Opcode::Unknown,
         }
     }
@@ -43,7 +44,7 @@ impl Opcode {
             Opcode::List => 0x04,
             Opcode::Refresh => 0x05,
             Opcode::Status => 0x80,
-            Opcode::Shutdown => 0x81,
+            Opcode::Shutdown => 0x82,
         }
     }
 }
