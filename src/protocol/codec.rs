@@ -5,12 +5,12 @@ use crate::error::FrameError;
 
 pub const MAX_FRAME_LEN: usize = 65536;
 pub const HEADER_LEN: usize = 4;
-pub const NONCE_LEN: usize = 8;
+pub const IDENTIFIER_LEN: usize = 8;
 
 // Bitmask used to check if a frame is a request
-pub(crate) const REQUEST_MASK: u8 = 0b00000001;
+pub(crate) const REQUEST_MASK: u8 = 0b0000_0001;
 // Bitmask used to verify that a frame ia a response
-pub(crate) const RESPONSE_MASK: u8 = 0b10000001;
+pub(crate) const RESPONSE_MASK: u8 = 0b1000_0001;
 
 pub struct ConduitCodec;
 

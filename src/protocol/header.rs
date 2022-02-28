@@ -1,27 +1,28 @@
 use bytes::Buf;
-use nom::branch::alt;
-use nom::bytes::streaming::{tag, take};
+use nom::bytes::streaming::take;
+use nom::error::ErrorKind;
 use nom::number::streaming::{be_u16, be_u64};
 use nom::IResult;
 
+use crate::protocol::codec::MAX_FRAME_LEN;
+
 #[derive(Debug, PartialEq)]
 pub struct Header {
-    version: u8,
-    opcode: u8,
-    length: u16,
-    nonce: u64,
+    pub version: u8,
+    pub opcode: u8,
+    pub length: u16,
+    pub identifier: u64,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Message {
-    message: usize,
+    pub message: usize,
 }
 
-// TODO: Parse message body and tie this logic together with existing modules
 pub fn parse_version(input: &[u8]) -> IResult<&[u8], u8> {
-    let (i, version) = alt((tag([0x01]), tag([0x81])))(input)?;
+    let (i, version) = take(1usize)(input)?;
 
-    let version = version.chunk()[0];
+    let version = version[0];
     match version {
         0x01 => Ok((i, version)),
         0x81 => Ok((i, version)),
@@ -39,7 +40,19 @@ pub fn parse_length(input: &[u8]) -> IResult<&[u8], u16> {
     Ok((i, length))
 }
 
-pub fn parse_nonce(input: &[u8]) -> IResult<&[u8], u64> {
-    let (i, nonce) = be_u64(input)?;
-    Ok((i, nonce))
+pub fn parse_identifier(input: &[u8]) -> IResult<&[u8], u64> {
+    let (i, identifier) = be_u64(input)?;
+    Ok((i, identifier))
+}
+
+pub fn parse_message(input: &[u8], len: usize) -> IResult<&[u8], &[u8]> {
+    let (i, message) = take(len)(input)?;
+    match message.len() {
+        0 => Ok((input, i)),
+        1..=MAX_FRAME_LEN => Ok((i, &message[..MAX_FRAME_LEN])),
+        _ => Err(nom::Err::Error(nom::error::Error::new(
+            message,
+            ErrorKind::Eof,
+        ))),
+    }
 }

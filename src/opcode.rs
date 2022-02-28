@@ -1,57 +1,68 @@
-// TODO: Update this solution to something more optimal and easy to reason about
+/// Opcodes are used to map parsed bytes (codes) to operations recognized by the
+/// receiving service.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-#[repr(u8)]
 pub enum Opcode {
-    // Unknown command; returns None or an Error
-    Unknown = 0x00,
-    // Get a key-value pair if it exists
-    Get = 0x01,
-    // Set a new key-value pair with optional expiration
-    Set = 0x02,
-    // Remove a cache entry
-    Delete = 0x03,
-    // List key-value pairs that match a given pattern
-    List = 0x04,
-    // Renew cache entry
-    Refresh = 0x05,
-    // Status signal
-    Status = 0x81,
-    // Shutdown signal
-    Shutdown = 0x82,
+    /// Unknown command; returns None or an Error
+    Unknown,
+    /// Get a key-value pair if it exists
+    Get,
+    /// Insert an entry into the cache with an attached TTL
+    Set,
+    /// Remove an entry if it exists
+    Delete,
+    /// List all entries that match a given pattern
+    List,
+    /// Renew the TTL for an existing entry
+    Renew,
+    /// Status signal
+    Status,
+    /// Shutdown signal
+    Shutdown,
 }
 
-impl Opcode {
-    pub fn kind(value: u8) -> Self {
+impl std::fmt::Display for Opcode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Opcode::Unknown => write!(f, "UNKNOWN"),
+            Opcode::Get => write!(f, "GET"),
+            Opcode::Set => write!(f, "SET"),
+            Opcode::Delete => write!(f, "DELETE"),
+            Opcode::List => write!(f, "LIST"),
+            Opcode::Renew => write!(f, "RENEW"),
+            Opcode::Status => write!(f, "STATUS"),
+            Opcode::Shutdown => write!(f, "SHUTDOWN"),
+        }
+    }
+}
+
+impl From<u8> for Opcode {
+    fn from(value: u8) -> Opcode {
         match value {
             0x00 => Opcode::Unknown,
             0x01 => Opcode::Get,
             0x02 => Opcode::Set,
             0x03 => Opcode::Delete,
             0x04 => Opcode::List,
-            0x05 => Opcode::Refresh,
+            0x05 => Opcode::Renew,
             0x80 => Opcode::Status,
             0x82 => Opcode::Shutdown,
             _ => Opcode::Unknown,
         }
     }
+}
 
-    pub fn into_byte(self) -> u8 {
-        match self {
+impl From<Opcode> for u8 {
+    fn from(opcode: Opcode) -> u8 {
+        match opcode {
             Opcode::Unknown => 0x00,
             Opcode::Get => 0x01,
             Opcode::Set => 0x02,
             Opcode::Delete => 0x03,
             Opcode::List => 0x04,
-            Opcode::Refresh => 0x05,
+            Opcode::Renew => 0x05,
             Opcode::Status => 0x80,
             Opcode::Shutdown => 0x82,
         }
-    }
-}
-
-impl From<Opcode> for u8 {
-    fn from(opcode: Opcode) -> Self {
-        opcode.into_byte()
     }
 }
 
@@ -61,14 +72,13 @@ mod tests {
 
     #[test]
     fn get_code_for_discriminant() {
-        println!("Name of command for discriminant");
-        let data = 0x04_u8;
+        let data = 0x04;
 
-        let name = Opcode::kind(data);
-        let value: u8 = name.into();
-        println!("{name:?}; {value}");
+        let name = Opcode::from(data);
+        let value = u8::from(name);
 
+        assert_eq!(name.to_string(), "LIST");
         assert_eq!(name, Opcode::List);
-        assert_eq!(value, 4);
+        assert_eq!(value, data);
     }
 }

@@ -17,14 +17,13 @@
 ## Description
 
 The conduit-protocol is a byte-oriented network protocol specifically designed
-for [Conduit](https://github.com/dark-fusion/conduit), in-memory database backed
-by a key-value store. `Conduit` is primarily useful as a cache service and is
-similar in nature to Redis and Memcached.
+for [Conduit](https://github.com/dark-fusion/conduit), in-memory database backed by a key-value
+store. `Conduit` is primarily useful as a cache service and is similar in nature to Redis and
+Memcached.
 
 ## Specification
 
-The official specification has not yet been published. Please check back soon
-for updates!
+The official specification has not yet been published. Please check back soon for updates!
 
 ### Frame Diagram
 
@@ -36,7 +35,7 @@ for updates!
    |      VERSION    |     OPCODE      |               LENGTH              |
  4 +-----------------+-----------------+-----------------+-----------------+
    |                                                                       |
- 8 +                                FRAME ID                               +
+ 8 +                              IDENTIFIER                               +
    |                                                                       |
 12 +-----------------+-----------------+-----------------+-----------------+
    |                                                                       |
@@ -49,32 +48,40 @@ for updates!
 
 #### Version
 
-8-bit integer that currently has just two valid values:
+8-bit integer used to determine the "kind", or direction, of the frame and the protocol version
+number.
 
-- `0x01`: Protocol version 1; `Request` frame (client -> server)
-- `0x81`: Protocol version 1; `Response` frame (server -> client)
+This field has just two valid values:
+
+- `0x01`:
+  - Client -> Server `Request` frame
+  - `Version`: Protocol version 1
+- `0x81`:
+  - Server -> Client `Response` frame
+  - `Version`: Protocol version 1
 
 #### Opcode
 
 8-bit integer that represents a client `Command` / `Request` or a `Response`
-with (or perhaps without) an attached `Message`.
+with (or perhaps without) an attached `Message` body.
 
 #### Length
 
-16-bit integer that is used to declare the message length. Although the `Header`
-cannot be empty, the `Message` can. There is a __maximum allowed frame length__
-of 65536 bytes.
+16-bit integer that determines the length of the `Message` body in bytes. The
+`Header` cannot be empty, but the `Message` can.
 
-### Frame ID
+__NOTE__: There is a __maximum allowed frame length__ of 65536 bytes.
 
-The frame ID is a randomly generated value comprised of 8 bytes. The Frame ID serves two distinct
+### Identifier
+
+The `Identifier` is a randomly generated value comprised of 8 bytes. The `Identifier` serves two distinct
 purposes:
 
-1. To identify a particular frame and simplify the process of synchronizing responses by helping to
-   keep frames in the proper order.
-2. Seed a `Nonce` used for encryption. The encryption scheme is not yet implemented, but it will use
-   a 192-bit nonce (24 bytes) and use the
-   `XChacha20-Poly1305` authenticated encryption with associated data construct.
+1. Identify an individual frame to keep frames in the correct order during response serialization.
+2. Creation of the `Nonce` required for encrypting payloads using the `XChaCha20-Poly1305`
+   encryption algorithm.
+   - This provides an extra layer of protection as the service may be running behind a
+     TLS-terminating reverse proxy.
 
 ### Message
 
