@@ -18,7 +18,7 @@ bytes = "1"
 nom = "7"
 rand = "0.8"
 tokio-util = { version = "0.7", features = ["codec", "io-util", "net"] }
-tz-rs = "0.5.3"
+tz-rs = "0.6.0"
 
 [dev-dependencies]
 tokio = { version = "1", default-features = false, features = ["macros", "net", "rt-multi-thread", "test-util"] }
