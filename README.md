@@ -32,11 +32,11 @@ The official specification has not yet been published. Please check back soon fo
    /                 |                 |                 |                 |
    | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 |
  0 +-----------------+-----------------+-----------------+-----------------+
-   |      VERSION    |     OPCODE      |               LENGTH              |
+   |                                 MAGIC                                 |
  4 +-----------------+-----------------+-----------------+-----------------+
-   |                                                                       |
- 8 +                              IDENTIFIER                               +
-   |                                                                       |
+   |                              IDENTIFIER                               |
+ 8 +-----------------+-----------------+-----------------+-----------------+
+   |     VERSION     |      OPCODE     |               LENGTH              | 
 12 +-----------------+-----------------+-----------------+-----------------+
    |                                                                       |
 .. |                                MESSAGE                                |
@@ -54,11 +54,11 @@ number.
 This field has just two valid values:
 
 - `0x01`:
-  - Client -> Server `Request` frame
-  - `Version`: Protocol version 1
+  - MSB: Client -> Server `Request` frame
+  - LSB: `Version`
 - `0x81`:
-  - Server -> Client `Response` frame
-  - `Version`: Protocol version 1
+  - MSB: Server -> Client `Response` frame
+  - LSB: `Version`
 
 #### Opcode
 
@@ -72,18 +72,18 @@ with (or perhaps without) an attached `Message` body.
 
 __NOTE__: There is a __maximum allowed frame length__ of 65536 bytes.
 
-### Identifier
+#### Identifier
 
-The `Identifier` is a randomly generated value comprised of 8 bytes. The `Identifier` serves two distinct
-purposes:
+The `Identifier` is a randomly generated value comprised of 8 bytes. The `Identifier` serves two
+distinct purposes:
 
 1. Identify an individual frame to keep frames in the correct order during response serialization.
 2. Creation of the `Nonce` required for encrypting payloads using the `XChaCha20-Poly1305`
    encryption algorithm.
-   - This provides an extra layer of protection as the service may be running behind a
-     TLS-terminating reverse proxy.
+  - This provides an extra layer of protection as the service may be running behind a
+    TLS-terminating reverse proxy.
 
-### Message
+#### Message
 
 The message is a critical part of most frame types. The `Opcode` is largely responsible for
 determining what type of payload will be included in the message body. For example, `Command`
