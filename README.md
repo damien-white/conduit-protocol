@@ -1,4 +1,6 @@
-# conduit-protocol
+<div align="center">
+  <h1>conduit-protocol</h1>
+</div>
 
 [![Crates.io](https://img.shields.io/crates/v/conduit-protocol.svg)](https://crates.io/crates/conduit-protocol)
 [![Docs.rs](https://docs.rs/conduit-protocol/badge.svg)](https://docs.rs/conduit-protocol)
@@ -23,81 +25,77 @@ Memcached.
 
 ## Specification
 
-The official specification has not yet been published. Please check back soon for updates!
+This section is a work in progress. Thus, it contains fairly limited information about the protocol
+specification. The protocol is entirely open-source and fully defined within this repository.
 
-### Frame Diagram
+If you find that you still have questions, would like to help contribute (adding documentation for
+this crate would be greatly appreciated!), please take a look at [CONTRIBUTING.md](/CONTRIBUTING.md)
+.
+
+### Frame Format
 
 ```text
     /       0        |         1       |         2       |        3        |
    /                 |                 |                 |                 |
    | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 |
- 0 +-----------------+-----------------+-----------------+-----------------+
+ 0 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                                 MAGIC                                 |
- 4 +-----------------+-----------------+-----------------+-----------------+
+ 4 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                              IDENTIFIER                               |
- 8 +-----------------+-----------------+-----------------+-----------------+
+ 8 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |     VERSION     |      OPCODE     |               LENGTH              | 
-12 +-----------------+-----------------+-----------------+-----------------+
+12 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                                                                       |
-.. |                                MESSAGE                                |
+16 |                                MESSAGE                                |
    |                                                                       |
-.. +-----------------------------------------------------------------------+
+.. +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
+[Byte order / Endianness](https://en.wikipedia.org/wiki/Endianness): All values use big endian
+order, or "network order".
 
 ### Header Fields
 
-#### Version
+#### Magic
 
-8-bit integer used to determine the "kind", or direction, of the frame and the protocol version
-number.
-
-This field has just two valid values:
-
-- `0x01`:
-  - MSB: Client -> Server `Request` frame
-  - LSB: `Version`
-- `0x81`:
-  - MSB: Server -> Client `Response` frame
-  - LSB: `Version`
-
-#### Opcode
-
-8-bit integer that represents a client `Command` / `Request` or a `Response`
-with (or perhaps without) an attached `Message` body.
-
-#### Length
-
-16-bit integer that determines the length of the `Message` body in bytes. The
-`Header` cannot be empty, but the `Message` can.
-
-__NOTE__: There is a __maximum allowed frame length__ of 65536 bytes.
+4-byte sequence that provides a "marker" indicating the beginning of a frame. The presence of this
+sequence alone is not sufficient to define it as a frame "boundary".
 
 #### Identifier
 
-The `Identifier` is a randomly generated value comprised of 8 bytes. The `Identifier` serves two
-distinct purposes:
+4-byte value that provides a unique frame identifier. Requests or responses may be received out of
+order or not received at all. Frame IDs provide methods for payload synchronization and help
+validate that the correct data is received.
 
-1. Identify an individual frame to keep frames in the correct order during response serialization.
-2. Creation of the `Nonce` required for encrypting payloads using the `XChaCha20-Poly1305`
-   encryption algorithm.
-  - This provides an extra layer of protection as the service may be running behind a
-    TLS-terminating reverse proxy.
+#### Version
 
-#### Message
+1-byte integer containing the protocol version number and the "direction" of the frame. Simple
+bitwise operations are used to extract and validate the received value.
 
-The message is a critical part of most frame types. The `Opcode` is largely responsible for
-determining what type of payload will be included in the message body. For example, `Command`
-payloads received from clients often require certain parameters. This data is encoded and sent
-within the message body.
+#### Opcode
+
+1-byte integer that maps to a known, expected instruction set. The opcode is very useful for
+determining the exact parameters that should be expected in the message body.
+
+#### Length
+
+2-byte integer that represents the number of bytes to parse from the message body that follows.
+Frames may not exceed the maximum frame length of **65536** bytes.
+
+### Message Body
+
+The message contains the body of the message itself. This area of the frame contains the bulk of the
+data as it is responsible for holding parameters related to particular opcodes, request and response
+messages and other related data.
 
 ## License
 
-Licensed under the MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT).
+This work is licensed under the [MIT license](/LICENSE). You may also view this license
+at http://opensource.org/licenses/MIT.
 
 ## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the
-work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
-additional terms or conditions.
+work by you shall be licensed as above, without any additional terms or conditions.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
