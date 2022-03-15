@@ -26,6 +26,11 @@ format:
     cargo clippy --fix
     cargo fmt --all
 
+# Run basic formatter and Clippy linter
+lint:
+    cargo fmt --all
+    cargo clippy
+
 # Run code-quality and CI-related tasks locally
 pre-commit:
     cargo fmt --all -- --check

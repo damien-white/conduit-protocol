@@ -1,3 +1,5 @@
+use bytes::BytesMut;
+
 /// The protocol frame `Header` holds crucial data that helps validate data that
 /// may be untrusted and uses a generic Type-Length-Value framing technique.
 ///
@@ -14,4 +16,10 @@ pub struct Header {
     pub opcode: u8,
     /// Contains the length of the message body that follows.
     pub length: u16,
+}
+
+/// The message attached to a frame. Contains the message body.
+#[derive(Debug, PartialEq)]
+pub struct Message {
+    pub body: BytesMut,
 }

@@ -2,7 +2,7 @@ use bytes::{Bytes, BytesMut};
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::error::ProtocolError;
-use crate::types::MAX_FRAME_LEN;
+use crate::types::MAX_FRAME_LENGTH;
 
 pub struct ConduitCodec;
 
@@ -25,10 +25,10 @@ impl Encoder<Bytes> for ConduitCodec {
     fn encode(&mut self, data: Bytes, dst: &mut BytesMut) -> Result<(), Self::Error> {
         let len = data.len();
 
-        if len > MAX_FRAME_LEN {
+        if len > MAX_FRAME_LENGTH {
             return Err(Self::Error::ExceedsMaxLength {
                 received: len,
-                expected: MAX_FRAME_LEN,
+                expected: MAX_FRAME_LENGTH,
             });
         }
 
