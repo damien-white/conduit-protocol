@@ -1,45 +1,72 @@
+use std::io;
+use std::io::Cursor;
+
 use bytes::Buf;
-use nom::bytes::streaming::{tag, take};
-use nom::combinator::verify;
-use nom::error::{Error, ErrorKind};
-use nom::number::streaming::be_u8;
-use nom::IResult;
 
-// TODO: 1. Handle Opcodes, Length field and Message body; 2. revisit validation
-use crate::types::{Version, MAGIC_SEQUENCE};
+pub const MAGIC_SEQUENCE: [u8; 4] = [0x4c, 0x75, 0x63, 0x79];
 
-pub fn parse_header(input: &[u8]) -> IResult<&[u8], &[u8]> {
-    let (input, _magic) = parse_magic(input)?;
-    let (input, _identifier) = parse_identifier(input)?;
-    let (input, _version) = parse_version(input)?;
-    Ok((input, input))
+pub fn parse_byte(buf: &mut Cursor<&[u8]>) -> io::Result<u8> {
+    if !buf.has_remaining() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "Missing or invalid data",
+        ));
+    }
+
+    let value = buf.get_u8();
+    Ok(value)
 }
 
-pub fn parse_magic(input: &[u8]) -> IResult<&[u8], &[u8]> {
-    tag(&MAGIC_SEQUENCE)(input)
+// fn peek_byte(buf: &mut Cursor<&[u8]>) -> io::Result<u8> {
+//     if !buf.has_remaining() {
+//         return Err(io::Error::new(
+//             io::ErrorKind::InvalidData,
+//             "Missing or invalid data",
+//         ));
+//     }
+//
+//     Ok(buf.chunk()[0])
+// }
+
+pub fn parse_magic(buf: &mut Cursor<&[u8]>) -> io::Result<[u8; 4]> {
+    if !buf.remaining() <= 4 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "Missing or invalid data",
+        ));
+    }
+
+    let value = buf.get_u32();
+    let magic: [u8; 4] = value.to_be_bytes();
+    if magic != MAGIC_SEQUENCE {
+        Err(std::io::Error::new(
+            io::ErrorKind::InvalidData,
+            "Missing or invalid data",
+        ))
+    } else {
+        Ok(magic)
+    }
 }
 
-pub fn parse_identifier(input: &[u8]) -> IResult<&[u8], u32> {
-    let (input, mut identifier) = verify(take4, |parsed: &[u8]| parsed.len() == 4)(input)?;
-    Ok((input, identifier.get_u32()))
-}
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
 
-pub fn parse_version(input: &[u8]) -> IResult<&[u8], Version> {
-    let (input, value) = parse_u8(input)?;
-    let version = match value {
-        0x01 => Version::Request,
-        0x81 => Version::Response,
-        _ => return Err(nom::Err::Failure(Error::new(input, ErrorKind::OneOf))),
-    };
+    use crate::parser::{parse_magic, MAGIC_SEQUENCE};
 
-    Ok((input, version))
-}
+    #[test]
+    fn parses_frame_header_magic_sequence() {
+        let data = b"\x4c\x75\x63\x79";
 
-pub fn take4(input: &[u8]) -> IResult<&[u8], &[u8]> {
-    take(4usize)(input)
-}
+        let mut reader = Cursor::new(&data[..]);
 
-pub fn parse_u8(input: &[u8]) -> IResult<&[u8], u8> {
-    let (input, version) = be_u8(input)?;
-    Ok((input, version))
+        let res = parse_magic(&mut reader).unwrap();
+        for (i, val) in data.iter().enumerate() {
+            println!("{i}: {}", *val);
+        }
+
+        assert_ne!(res.len(), 0);
+        assert!(!res.is_empty(), "reader is empty!");
+        assert_eq!(res, MAGIC_SEQUENCE);
+    }
 }

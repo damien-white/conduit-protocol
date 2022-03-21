@@ -35,20 +35,16 @@ this crate would be greatly appreciated!), please take a look at [CONTRIBUTING.m
 ### Frame Format
 
 ```text
-    /       0        |         1       |         2       |        3        |
-   /                 |                 |                 |                 |
-   | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 | 0 1 2 3 4 5 6 7 |
- 0 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                                 MAGIC                                 |
- 4 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                              IDENTIFIER                               |
- 8 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |     VERSION     |      OPCODE     |               LENGTH              | 
-12 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                                                                       |
-16 |                                MESSAGE                                |
-   |                                                                       |
-.. +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 
+   0 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                        Magic Sequence                         |
+   4 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |    Version    |     Tag       |            Length             |
+  12 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                                                               |
+  16 +                            Value                              +
+     |                                                               |
+ ... +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
 [Byte order / Endianness](https://en.wikipedia.org/wiki/Endianness): All values use big endian
@@ -58,35 +54,38 @@ order, or "network order".
 
 #### Magic
 
-4-byte sequence that provides a "marker" indicating the beginning of a frame. The presence of this
-sequence alone is not sufficient to define it as a frame "boundary".
-
-#### Identifier
-
-4-byte value that provides a unique frame identifier. Requests or responses may be received out of
-order or not received at all. Frame IDs provide methods for payload synchronization and help
-validate that the correct data is received.
+4-byte sequence that indicates the beginning of a frame. Note that the presence of this sequence is
+meant to help synchronize framing but is not sufficient by itself to define a frame boundary.
 
 #### Version
 
 1-byte integer containing the protocol version number and the "direction" of the frame. Simple
 bitwise operations are used to extract and validate the received value.
 
-#### Opcode
+#### Tag
 
-1-byte integer that maps to a known, expected instruction set. The opcode is very useful for
-determining the exact parameters that should be expected in the message body.
+1-byte integer value which indicates the type of payload, or value to expect.
 
 #### Length
 
-2-byte integer that represents the number of bytes to parse from the message body that follows.
-Frames may not exceed the maximum frame length of **65536** bytes.
+2-byte integer representing the length (in bytes) of the value field that follows.<br/>
 
-### Message Body
+- Frame size is currently capped at **65536** bytes. This limit exists to prevent denial-of-service
+  attacks.
 
-The message contains the body of the message itself. This area of the frame contains the bulk of the
-data as it is responsible for holding parameters related to particular opcodes, request and response
-messages and other related data.
+### Value
+
+Variable-length byte stream containing arbitrary data. The data may or may not be valid.
+
+The value contains the bulk of almost all types of frames as it contains the payload data of a given
+request or response.
+
+This field may contain any, or a combination of, the following:
+
+- Command / Procedure with optional parameters
+- Error message
+- Status code(s)
+- Simple Signal
 
 ## License
 

@@ -12,8 +12,8 @@ pub struct Header {
     pub id: u32,
     /// Version number and whether the frame is a `Request` or `Response`.
     pub version: u8,
-    /// Code that maps to a known instruction set, or command.
-    pub opcode: u8,
+    /// Code that represents a frame's value type.
+    pub tag: u8,
     /// Contains the length of the message body that follows.
     pub length: u16,
 }
