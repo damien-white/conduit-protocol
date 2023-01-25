@@ -1,30 +1,41 @@
 [package]
-name = "conduit-protocol"
+name = "amalgam"
 version = "0.1.0"
 edition = "2021"
 description = """
-High-performance, memory-safe and fault-tolerant byte-oriented communication
-protocol over TCP. The protocol is designed to provide the low-level networking
-for an in-memory database backed by a key-value store.
+Primitive and structural type definitions for Lucy.
 """
-repository = "https://github.com/dark-fusion/conduit-protocol"
+repository = "https://github.com/dark-fusion/amalgam"
 license = "MIT"
+default-run = "server"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 path = "src/lib.rs"
 
-[dependencies]
-bytes = "1"
-thiserror = "1"
-tokio-util = { version = "0.7", features = ["codec"] }
-tz-rs = "0.6"
+[[bin]]
+name = "client"
+path = "src/bin/client.rs"
 
-#[dev-dependencies.tokio]
-#version = "1"
-#default-features = false
-#features = ["io-util", "macros", "net", "rt-multi-thread", "rt", "signal", "test-util"]
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
+
+[dependencies]
+bytes = "1.1.0"
+tokio = { version = "1.19.2", features = ["full"] }
+
+[profile.bench]
+debug = true
+lto = true
+codegen-units = 1
 
 [profile.dev]
-# Decrease compilation times during development on MacOS
-split-debuginfo = "unpacked"
+# Disabling debug info speeds up build times during development.
+# Comment out the following line to re-enable debug info.
+debug = 0
+
+[profile.release]
+incremental = true
+debug = 0 # Set this to 1 or 2 to get more useful backtraces in debugger.
+lto = true

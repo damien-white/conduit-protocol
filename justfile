@@ -1,46 +1,40 @@
-# Disable dotenv support to avoid automatically loading from '.env' files
-set dotenv-load := false
-set positional-arguments := true
+set dotenv-load := true
+# Uncomment the next line to enable positional arguments.
+#set positional-arguments := true
 
-export RUST_BACKTRACE := "1"
+export RUST_BACKTRACE := "full"
 
 _default:
     @just --list
 
-# Build the project with the `tokio_unstable` flag set
-build:
-    cargo build
-
-# Build the release version
-build-release:
+# Create an optimized 'release' build
+@build:
     cargo build --release
 
 # Format, lint and check that project compiles
-compile:
+@compile:
     cargo fmt --all
     cargo clippy -- -D warnings
 
 # Format the project with rustfmt
-format:
-    cargo fix
-    cargo clippy --fix
+@format:
     cargo fmt --all
+    cargo clippy -- --D warnings
 
-# Run basic formatter and Clippy linter
-lint:
-    cargo fmt --all
-    cargo clippy
+# Quickly format and run linter
+@lint:
+    cargo clippy && echo "   *** [Linter finished successfully] ***"
 
 # Run code-quality and CI-related tasks locally
-pre-commit:
+@pre-commit:
     cargo fmt --all -- --check
     cargo clippy -- --D warnings
     cargo test
 
-# Run tests without capturing I/O
-test:
-    cargo test -- --nocapture
+# Run tests with 'nocapture' and 'quiet' flags set
+@test:
+    cargo test -- --nocapture --quiet
 
-# Run all tests sequentially without capturing I/O
-test-debug:
+# Run tests single-threaded for concurrency-related debugging
+@test-debug:
     cargo test -- --test-threads=1 --nocapture

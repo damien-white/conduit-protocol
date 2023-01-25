@@ -1,11 +1,12 @@
 <div align="center">
-  <h1>conduit-protocol</h1>
-</div>
+  <h1>amalgam</h1>
 
-[![Crates.io](https://img.shields.io/crates/v/conduit-protocol.svg)](https://crates.io/crates/conduit-protocol)
-[![Docs.rs](https://docs.rs/conduit-protocol/badge.svg)](https://docs.rs/conduit-protocol)
-[![CI](https://github.com/dark-fusion/conduit-protocol/workflows/CI/badge.svg)](https://github.com/dark-fusion/conduit-protocol/actions)
-[![Coverage Status](https://coveralls.io/repos/github/dark-fusion/conduit-protocol/badge.svg?branch=main)](https://coveralls.io/github/dark-fusion/conduit-protocol?branch=main)
+[![Crates.io](https://img.shields.io/crates/v/amalgam.svg)](https://crates.io/crates/amalgam)
+[![Docs.rs](https://docs.rs/amalgam/badge.svg)](https://docs.rs/amalgam)
+[![CI](https://github.com/dark-fusion/amalgam/workflows/CI/badge.svg)](https://github.com/dark-fusion/amalgam/actions)
+[![Coverage Status](https://coveralls.io/repos/github/dark-fusion/amalgam/badge.svg?branch=main)](https://coveralls.io/github/dark-fusion/amalgam?branch=main)
+
+</div>
 
 ## Project Setup
 
@@ -18,31 +19,66 @@
 
 ## Description
 
-The conduit-protocol is a byte-oriented network protocol specifically designed
-for [Conduit](https://github.com/dark-fusion/conduit), in-memory database backed by a key-value
-store. `Conduit` is primarily useful as a cache service and is similar in nature to Redis and
-Memcached.
+This crate contains the building blocks for `amalgam`. In particular, it provides an API that allows
+access to a simple codec and (de)serialization routines.
 
-## Specification
+## Type System
 
-This section is a work in progress. Thus, it contains fairly limited information about the protocol
-specification. The protocol is entirely open-source and fully defined within this repository.
+The type system is currently based upon [serde's data model][serde-rs]
+Lucy Types system can essentially be broken up into two main categories: `primitive` types
+and `structural` types.
 
-If you find that you still have questions, would like to help contribute (adding documentation for
-this crate would be greatly appreciated!), please take a look at [CONTRIBUTING.md](/CONTRIBUTING.md)
-.
+### Primitives:
 
-### Frame Format
+- `boolean` => `1`
+- `int` => `2`
+- `uint` => `3`
+- `float` => `4`
+- `double` => `5`
+- `string` => `6`
+
+### Structural
+
+- `Entry` => `7`
+    - associated pair / key-value entry represented as a `Tuple`
+- `Array` => `8`
+    - fixed size `array` type / [T]
+- `List` => `9`
+    - growable array type / `Vector`
+- `Map` => `10`
+    - unordered list of key-value pairs / `HashMap`
+
+## Framing
+
+Lucy's types are represented on the wire in a very particular way.
+
+<!-- TODO: Come up with a proper framing structure -->
+
+- **Frame header structure will be match in-memory alignment**
+
+- Magic sequence: 12 bytes
+- Source address: 6-8 bytes
+- Version: 1 byte
+- Length field: 2-3 bytes
+- Destination address: 6-8 bytes: ((u8, u8, u8, u8) u16) -> aligns to 8 bytes
 
 ```text
       0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 
    0 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                        Magic Sequence                         |
-   4 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |    Version    |     Tag       |            Length             |
-  12 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      |                                                               |
-  16 +                            Value                              +
+   4 +                                                               +
+     |                Handshake data / Negotiation data              |
+   8 +                                                               +
+     |                                                               |
+  12 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                         Source Address                        |     
+  16 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+     
+     |                       Destination Address                     |     
+  16 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |    Version    |                   Length                      |
+  20 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                                                               |
+  16 +                       Payload / Bytes                         +
      |                                                               |
  ... +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
